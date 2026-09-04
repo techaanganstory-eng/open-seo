@@ -1,11 +1,17 @@
 services:
   open-seo:
-    image: ${OPEN_SEO_IMAGE:-ghcr.io/every-app/open-seo:latest}
+    # Build from THIS repo's source (Dockerfile.selfhost) instead of pulling the
+    # published image — that is the only way the HOSTED_ALLOWED_EMAILS allowlist
+    # in src/lib/auth.ts ends up in the running container. The pre-built
+    # ghcr.io/every-app/open-seo image carries upstream's auth code, which has
+    # no allowlist and would allow open signups.
+    build:
+      context: .
+      dockerfile: Dockerfile.selfhost
     restart: unless-stopped
-    # Forward EVERY .env value into the container. The explicit `environment:`
-    # list below still wins for the values it names.
-    env_file:
-      - .env.hosted
+    # In Coolify, environment variables you set in the service UI are injected
+    # for ${VAR} interpolation below — no .env file is needed. The explicit
+    # `environment:` list is the source of truth for what the container sees.
     environment:
       # Required so Compose env vars reach the cloudflare:workers bindings the
       # app reads (env.AUTH_MODE, env.BETTER_AUTH_SECRET, ...).

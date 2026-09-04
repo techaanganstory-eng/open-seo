@@ -39,6 +39,21 @@ const hostedBaseUrlSchema = z
     );
   }, "BETTER_AUTH_URL must use https or localhost");
 
+// Signup/sign-in allowlist for hosted self-hosting. When HOSTED_ALLOWED_EMAILS
+// is set, only those addresses may create an account OR sign in; unset allows
+// all. Enforced at BOTH user.create (blocks new signups) and session.create
+// (blocks any pre-existing or pre-allowlist account whose email is not allowed)
+// so a stale account can't keep accessing the app and its API keys.
+function isHostedEmailAllowed(email: string): boolean {
+  const raw = env.HOSTED_ALLOWED_EMAILS?.trim();
+  if (!raw) return true;
+  const allowed = raw
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+  return allowed.includes(email.trim().toLowerCase());
+}
+
 function createAuth() {
   // Hosted needs the real configured URL (cookies, callbacks, /api/auth routes
   // all use it). Self-hosted only builds this instance to mint/refresh Search
@@ -222,18 +237,10 @@ function createAuth() {
                     "Please sign up with a non-disposable email address.",
                 });
               }
-
-              const allowedEmails = env.HOSTED_ALLOWED_EMAILS?.trim();
-              if (allowedEmails) {
-                const allowed = allowedEmails
-                  .split(",")
-                  .map((e) => e.trim().toLowerCase())
-                  .filter(Boolean);
-                if (!allowed.includes(user.email.toLowerCase())) {
-                  throw new APIError("BAD_REQUEST", {
-                    message: "Your email address is not allowed to sign up.",
-                  });
-                }
+              if (!isHostedEmailAllowed(user.email)) {
+                throw new APIError("BAD_REQUEST", {
+                  message: "Your email address is not allowed to sign up.",
+                });
               }
             }
             return { data: user };
@@ -250,6 +257,21 @@ function createAuth() {
         create: {
           before: async (session) => {
             // Runs on every sign-in (each sign-in mints a session row).
+            // Re-check the allowlist here, not just at signup: user.create only
+            // fires once, so without this an account created before the
+            // allowlist existed (or after its email was removed) could keep
+            // signing in and using the app's API keys.
+            if (isHostedAuthMode(env.AUTH_MODE)) {
+              const record = await AuthRepository.getHostedUser(
+                session.userId,
+              );
+              if (record && !isHostedEmailAllowed(record.email)) {
+                throw new APIError("FORBIDDEN", {
+                  message: "Your email address is not allowed to sign in.",
+                });
+              }
+            }
+
             // Resolution order: last-active org while still a member → most
             // recently joined org → newly created default organization —
             // except that a membership-less user with a pending invitation
