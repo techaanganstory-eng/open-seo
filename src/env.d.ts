@@ -58,6 +58,11 @@ declare namespace Cloudflare {
     // DataForSEO API Basic auth value (base64 of login:password)
     DATAFORSEO_API_KEY: string;
 
+    // Comma-separated list of emails allowed to sign up in hosted mode.
+    // When set, any signup (email/password or Google OAuth) from an address
+    // not in the list is rejected. Leave unset to allow all emails.
+    HOSTED_ALLOWED_EMAILS?: string;
+
     // OpenRouter API key for the in-app chat agents (onboarding + SAM).
     OPENROUTER_API_KEY?: string;
     // Optional OpenRouter model slug override (defaults in openrouter.ts).

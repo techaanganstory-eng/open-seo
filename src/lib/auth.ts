@@ -215,13 +215,26 @@ function createAuth() {
           // throwaway-inbox domains before the user row is created. Self-hosted
           // has no shared credit pool to protect, so it's left untouched.
           before: async (user) => {
-            if (
-              isHostedAuthMode(env.AUTH_MODE) &&
-              isDisposableEmailDomain(user.email)
-            ) {
-              throw new APIError("BAD_REQUEST", {
-                message: "Please sign up with a non-disposable email address.",
-              });
+            if (isHostedAuthMode(env.AUTH_MODE)) {
+              if (isDisposableEmailDomain(user.email)) {
+                throw new APIError("BAD_REQUEST", {
+                  message:
+                    "Please sign up with a non-disposable email address.",
+                });
+              }
+
+              const allowedEmails = env.HOSTED_ALLOWED_EMAILS?.trim();
+              if (allowedEmails) {
+                const allowed = allowedEmails
+                  .split(",")
+                  .map((e) => e.trim().toLowerCase())
+                  .filter(Boolean);
+                if (!allowed.includes(user.email.toLowerCase())) {
+                  throw new APIError("BAD_REQUEST", {
+                    message: "Your email address is not allowed to sign up.",
+                  });
+                }
+              }
             }
             return { data: user };
           },
