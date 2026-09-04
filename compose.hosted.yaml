@@ -1,0 +1,71 @@
+services:
+  open-seo:
+    image: ${OPEN_SEO_IMAGE:-ghcr.io/every-app/open-seo:latest}
+    restart: unless-stopped
+    # Forward EVERY .env value into the container. The explicit `environment:`
+    # list below still wins for the values it names.
+    env_file:
+      - .env.hosted
+    environment:
+      # Required so Compose env vars reach the cloudflare:workers bindings the
+      # app reads (env.AUTH_MODE, env.BETTER_AUTH_SECRET, ...).
+      - CLOUDFLARE_INCLUDE_PROCESS_ENV=true
+      - PORT=${PORT:-3001}
+
+      # Public hostname. REQUIRED behind Coolify's proxy — the app runs via
+      # `vite preview`, which serves Vite's "Blocked request" page for any host
+      # it does not recognize. Set this to your Coolify domain (no scheme).
+      - ALLOWED_HOST=${ALLOWED_HOST}
+
+      # --- Auth: hosted mode (Better Auth email/password + Google OAuth) -------
+      # AUTH_MODE is inlined into the client bundle by the boot-time vite build
+      # (docker-entrypoint.sh), so it MUST be present here, not just at runtime.
+      - AUTH_MODE=hosted
+      # Full public URL including https:// — cookies, OAuth callbacks, and the
+      # /api/auth/* routes all key off it. Must match ALLOWED_HOST's domain.
+      - BETTER_AUTH_URL=${BETTER_AUTH_URL}
+      # 32+ char random secret. Signs sessions and encrypts stored OAuth tokens.
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      # Comma-separated signup allowlist. Any signup (email/password OR Google
+      # OAuth) from an address not in this list is rejected. Leave unset to
+      # allow all emails.
+      - HOSTED_ALLOWED_EMAILS=${HOSTED_ALLOWED_EMAILS:-}
+      # Skip email verification so no Loops/email provider is needed. Signups
+      # are already gated by HOSTED_ALLOWED_EMAILS; Google emails are verified
+      # by Google. Set to "false" only if you configure the LOOPS_* vars below.
+      - BYPASS_EMAIL_VERIFICATION=${BYPASS_EMAIL_VERIFICATION:-true}
+
+      # --- SEO data ------------------------------------------------------------
+      - DATAFORSEO_API_KEY=${DATAFORSEO_API_KEY}
+
+      # --- Optional: transactional email (only if BYPASS_EMAIL_VERIFICATION=false)
+      - LOOPS_API_KEY=${LOOPS_API_KEY:-}
+      - LOOPS_TRANSACTIONAL_VERIFY_EMAIL_ID=${LOOPS_TRANSACTIONAL_VERIFY_EMAIL_ID:-}
+      - LOOPS_TRANSACTIONAL_RESET_PASSWORD_ID=${LOOPS_TRANSACTIONAL_RESET_PASSWORD_ID:-}
+
+      # --- Optional: signup captcha -------------------------------------------
+      - TURNSTILE_SECRET_KEY=${TURNSTILE_SECRET_KEY:-}
+      - TURNSTILE_SITE_KEY=${TURNSTILE_SITE_KEY:-}
+
+      # --- Optional: AI features (SAM, onboarding chat) -----------------------
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
+      - OPENROUTER_MODEL=${OPENROUTER_MODEL:-}
+
+      # --- Telemetry opt-out (optional) ---------------------------------------
+      - OPENSEO_TELEMETRY_DISABLED=${OPENSEO_TELEMETRY_DISABLED:-}
+      - DO_NOT_TRACK=${DO_NOT_TRACK:-}
+
+      - VITE_SHOW_DEVTOOLS=false
+    # Coolify's proxy connects to the container over the Docker network and maps
+    # your domain to this port — no host port publish needed. If you run this
+    # compose directly (not via Coolify), swap `expose` for:
+    #   ports:
+    #     - "${PORT:-3001}:${PORT:-3001}"
+    expose:
+      - "${PORT:-3001}"
+    volumes:
+      - open_seo_data:/app/.wrangler
+volumes:
+  open_seo_data:
