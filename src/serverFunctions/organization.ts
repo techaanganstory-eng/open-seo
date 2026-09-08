@@ -6,7 +6,10 @@ import { hasOrgPermission } from "@/lib/org-permissions";
 import { consumeInvitationSendBudget } from "@/server/auth/invitation-send-limit";
 import { requireOrgPermission } from "@/server/auth/org-gate";
 import { AuthRepository } from "@/server/auth/repositories/AuthRepository";
-import { sendHostedInvitationEmail } from "@/server/email/loops";
+import {
+  hasHostedInvitationEmailConfig,
+  sendHostedInvitationEmail,
+} from "@/server/email/loops";
 import { AppError } from "@/server/lib/errors";
 import { requireAuthenticatedContext } from "@/serverFunctions/middleware";
 
@@ -128,29 +131,38 @@ export const sendTeamInvitation = createServerFn({ method: "POST" })
       },
     });
 
-    const [inviter, memberships] = await Promise.all([
-      AuthRepository.getHostedUser(context.userId),
-      AuthRepository.listMembershipsForUser(context.userId),
-    ]);
-    const organizationName =
-      memberships.find(
-        (membership) => membership.organizationId === context.organizationId,
-      )?.organizationName ?? "Organization";
+    const inviteUrl = `${getHostedBaseUrl()}/accept-invitation/${invitation.id}`;
+    const emailConfigured = hasHostedInvitationEmailConfig();
 
-    try {
-      await sendHostedInvitationEmail({
-        email: data.email,
-        inviteUrl: `${getHostedBaseUrl()}/accept-invitation/${invitation.id}`,
-        organizationName,
-        inviterName: inviter?.name?.trim() || context.userEmail,
-        inviterEmail: context.userEmail,
-      });
-    } catch (error) {
-      // The invitation row exists and stays pending — surface the send
-      // failure so the inviter retries instead of assuming it landed.
-      console.error("Invitation email send failed:", error);
-      throw new AppError("UPSTREAM_UNAVAILABLE");
+    // Self-host without Loops configured: don't send (or fail on) an email —
+    // the caller copies the invite link from the team list instead. Only when
+    // the invitation email IS configured do we send it, and a failed send
+    // still surfaces so the inviter retries rather than assuming it landed.
+    if (emailConfigured) {
+      const [inviter, memberships] = await Promise.all([
+        AuthRepository.getHostedUser(context.userId),
+        AuthRepository.listMembershipsForUser(context.userId),
+      ]);
+      const organizationName =
+        memberships.find(
+          (membership) => membership.organizationId === context.organizationId,
+        )?.organizationName ?? "Organization";
+
+      try {
+        await sendHostedInvitationEmail({
+          email: data.email,
+          inviteUrl,
+          organizationName,
+          inviterName: inviter?.name?.trim() || context.userEmail,
+          inviterEmail: context.userEmail,
+        });
+      } catch (error) {
+        // The invitation row exists and stays pending — surface the send
+        // failure so the inviter retries instead of assuming it landed.
+        console.error("Invitation email send failed:", error);
+        throw new AppError("UPSTREAM_UNAVAILABLE");
+      }
     }
 
-    return { invitationId: invitation.id };
+    return { invitationId: invitation.id, inviteUrl, emailSent: emailConfigured };
   });

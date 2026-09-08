@@ -30,9 +30,13 @@ export function InviteTeammateModal({
   const inviteMutation = useMutation({
     mutationFn: (inviteeEmail: string) =>
       sendTeamInvitation({ data: { email: inviteeEmail } }),
-    onSuccess: () => {
+    onSuccess: (result) => {
       captureClientEvent("team:invitation_send");
-      toast.success("Invitation sent");
+      toast.success(
+        result.emailSent
+          ? "Invitation sent"
+          : "Invitation created — use Copy invite link to share it",
+      );
       onInvited();
       onClose();
     },

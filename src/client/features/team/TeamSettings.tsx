@@ -64,6 +64,20 @@ export function TeamSettings() {
     },
   });
 
+  // Self-host without an email provider relies on this link to onboard
+  // teammates — the invite email is skipped, so the inviter shares it manually.
+  const copyInviteLink = async (invitationId: string) => {
+    const link = `${window.location.origin}/accept-invitation/${invitationId}`;
+    try {
+      await navigator.clipboard.writeText(link);
+      toast.success("Invite link copied");
+    } catch {
+      // Clipboard can be blocked (insecure context / denied permission) — show
+      // the link so the user can copy it by hand.
+      toast.message("Copy this invite link", { description: link });
+    }
+  };
+
   const cancelInvitationMutation = useMutation({
     mutationFn: async (invitationId: string) => {
       const result = await authClient.organization.cancelInvitation({
@@ -164,6 +178,7 @@ export function TeamSettings() {
                   canManageTeam={canManageTeam}
                   isResending={resendMutation.isPending}
                   isCanceling={cancelInvitationMutation.isPending}
+                  onCopyLink={() => void copyInviteLink(invitation.id)}
                   onResend={() => resendMutation.mutate(invitation.email)}
                   onCancel={() =>
                     cancelInvitationMutation.mutate(invitation.id)

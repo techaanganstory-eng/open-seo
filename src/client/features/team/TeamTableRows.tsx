@@ -1,4 +1,4 @@
-import { Send, Trash2 } from "lucide-react";
+import { Link2, Send, Trash2 } from "lucide-react";
 import { PortalMenu } from "@/client/components/PortalMenu";
 import { hasOrgPermission } from "@/lib/org-permissions";
 
@@ -109,6 +109,7 @@ export function InvitationRow({
   canManageTeam,
   isResending,
   isCanceling,
+  onCopyLink,
   onResend,
   onCancel,
 }: {
@@ -116,6 +117,7 @@ export function InvitationRow({
   canManageTeam: boolean;
   isResending: boolean;
   isCanceling: boolean;
+  onCopyLink: () => void;
   onResend: () => void;
   onCancel: () => void;
 }) {
@@ -143,6 +145,17 @@ export function InvitationRow({
           >
             {(close) => (
               <>
+                <li>
+                  <button
+                    onClick={() => {
+                      close();
+                      onCopyLink();
+                    }}
+                  >
+                    <Link2 className="size-3.5" />
+                    Copy invite link
+                  </button>
+                </li>
                 <li>
                   <button
                     disabled={isResending}

@@ -35,6 +35,17 @@ function getHostedAuthEmailConfig() {
   };
 }
 
+// Whether the transactional invitation email is configured. Self-host
+// deployments (Docker) commonly run without Loops; when this is false the
+// team-invite flow skips the email and surfaces a copyable invite link
+// instead of failing the invitation.
+export function hasHostedInvitationEmailConfig(): boolean {
+  return (
+    getOptionalEnv("LOOPS_API_KEY") !== null &&
+    getOptionalEnv("LOOPS_TRANSACTIONAL_INVITATION_ID") !== null
+  );
+}
+
 async function sendLoopsTransactionalEmail({
   apiKey,
   email,
