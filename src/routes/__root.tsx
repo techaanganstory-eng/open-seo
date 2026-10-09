@@ -5,6 +5,7 @@ import {
   Outlet,
   Scripts,
   createRootRoute,
+  useLocation,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { TanStackDevtools } from "@tanstack/react-devtools";
@@ -94,6 +95,11 @@ export const Route = createRootRoute({
   shellComponent: RootDocument,
 });
 
+// Logged-out pages that must be readable without JavaScript (Google's OAuth
+// verification checks the raw HTML), so they render outside the ClientOnly app
+// shell below.
+const SERVER_RENDERED_PATHS = ["/", "/privacy-policy"];
+
 function AppLayout() {
   return <Outlet />;
 }
@@ -129,6 +135,24 @@ function PostHogBootstrap() {
 function RootDocument({ children }: { children: React.ReactNode }) {
   const showDevtools =
     import.meta.env.DEV && import.meta.env.VITE_SHOW_DEVTOOLS !== "false";
+  const pathname = useLocation({ select: (location) => location.pathname });
+
+  if (SERVER_RENDERED_PATHS.includes(pathname)) {
+    return (
+      <html suppressHydrationWarning translate="no">
+        <head>
+          <script
+            dangerouslySetInnerHTML={{ __html: themePreferenceInitScript }}
+          />
+          <HeadContent />
+        </head>
+        <body>
+          {children}
+          <Scripts />
+        </body>
+      </html>
+    );
+  }
 
   return (
     <html suppressHydrationWarning translate="no">

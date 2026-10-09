@@ -40,13 +40,13 @@ const FEATURES = [
 ];
 
 function HomePage() {
-  const { data: session, isPending } = useSession();
+  const { data: session } = useSession();
 
-  // The public page is only for logged-out visitors on the hosted deployment.
-  // Everyone else goes straight to the app.
-  if (isHostedClientAuthMode()) {
-    if (isPending) return null;
-    if (!session?.user?.id) return <PublicHome />;
+  // Logged-out visitors on the hosted deployment get the public page. It also
+  // renders while the session is still loading, so the server-rendered HTML
+  // carries the content for crawlers that don't run JavaScript.
+  if (isHostedClientAuthMode() && !session?.user?.id) {
+    return <PublicHome />;
   }
 
   return <Navigate to="/home" replace />;
