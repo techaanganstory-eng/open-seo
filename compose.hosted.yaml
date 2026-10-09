@@ -38,6 +38,10 @@ services:
       # OAuth) from an address not in this list is rejected. Leave unset to
       # allow all emails.
       - HOSTED_ALLOWED_EMAILS=${HOSTED_ALLOWED_EMAILS:-}
+      # Internal deployment: no Autumn billing. Without this, hosted mode gates
+      # and meters every SEO data call through Autumn and fails without
+      # AUTUMN_SECRET_KEY. Set to "false" only if you configure Autumn.
+      - HOSTED_BILLING_DISABLED=${HOSTED_BILLING_DISABLED:-true}
       # Skip email verification so no Loops/email provider is needed. Signups
       # are already gated by HOSTED_ALLOWED_EMAILS; Google emails are verified
       # by Google. Set to "false" only if you configure the LOOPS_* vars below.

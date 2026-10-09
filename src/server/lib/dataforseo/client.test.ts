@@ -47,6 +47,7 @@ vi.mock("@/server/billing/subscription", async (importOriginal) => {
 
 vi.mock("@/server/lib/runtime-env", () => ({
   isHostedServerAuthMode: isHostedServerAuthModeMock,
+  isHostedBillingDisabled: vi.fn(),
 }));
 
 vi.mock("@/server/lib/posthog", () => ({

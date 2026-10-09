@@ -55,6 +55,7 @@ vi.mock("@/server/billing/autumn", () => ({
 }));
 vi.mock("@/server/lib/runtime-env", () => ({
   isHostedServerAuthMode: mocks.isHostedServerAuthMode,
+  isHostedBillingDisabled: vi.fn(),
 }));
 
 const billingCustomer = {

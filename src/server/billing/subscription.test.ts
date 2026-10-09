@@ -25,8 +25,13 @@ vi.mock("@/server/billing/autumn", () => ({
   },
 }));
 
+const { billingDisabledMock } = vi.hoisted(() => ({
+  billingDisabledMock: vi.fn(),
+}));
+
 vi.mock("@/server/lib/runtime-env", () => ({
   isHostedServerAuthMode: vi.fn(),
+  isHostedBillingDisabled: billingDisabledMock,
 }));
 
 // subscription.ts now imports posthog (for trackUsageCreditSpend); stub it so
@@ -50,6 +55,18 @@ describe("subscription billing", () => {
 
   afterEach(() => {
     vi.useRealTimers();
+  });
+
+  it("skips Autumn entirely when hosted billing is disabled", async () => {
+    billingDisabledMock.mockResolvedValueOnce(true);
+    await expect(customerHasPaidPlan("org_123")).resolves.toBe(true);
+
+    billingDisabledMock.mockResolvedValueOnce(true);
+    await expect(assertUsageCreditsAvailable("org_123")).resolves.toEqual({
+      monthlyRemaining: 0,
+    });
+
+    expect(checkMock).not.toHaveBeenCalled();
   });
 
   it("checks the paid plan entitlement", async () => {

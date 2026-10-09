@@ -41,6 +41,15 @@ export async function isHostedServerAuthMode(): Promise<boolean> {
   return isHostedAuthMode(await getOptionalEnvValue("AUTH_MODE"));
 }
 
+// Internal deployments use hosted auth (Google sign-in, MCP OAuth) without
+// selling plans. HOSTED_BILLING_DISABLED=true skips every Autumn gate and
+// meter: all plan-gated features are available and usage is not metered.
+// Opt-in on purpose, so a deployment that merely lost its Autumn key fails
+// closed instead of handing out unmetered usage.
+export async function isHostedBillingDisabled(): Promise<boolean> {
+  return (await getOptionalEnvValue("HOSTED_BILLING_DISABLED")) === "true";
+}
+
 async function getWorkersEnv(): Promise<Record<string, unknown> | null> {
   if (!workersEnvPromise) {
     workersEnvPromise = loadWorkersEnv();

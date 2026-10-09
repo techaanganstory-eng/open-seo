@@ -294,6 +294,7 @@ const dataEnv = {
   // must live in the env file — a dashboard-set var would be wiped.
   OPENSEO_TELEMETRY_DISABLED: optionalVar("OPENSEO_TELEMETRY_DISABLED"),
   HOSTED_ALLOWED_EMAILS: optionalVar("HOSTED_ALLOWED_EMAILS"),
+  HOSTED_BILLING_DISABLED: optionalVar("HOSTED_BILLING_DISABLED"),
 };
 
 export default Alchemy.Stack(

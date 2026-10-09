@@ -5,6 +5,7 @@ import { isHostedAuthMode } from "@/lib/auth-mode";
 import { hasOrgPermission } from "@/lib/org-permissions";
 import { resolveHostedContext } from "@/middleware/ensure-user/hosted";
 import type { EnsuredUserContext } from "@/middleware/ensure-user/types";
+import { isHostedBillingDisabled } from "@/server/lib/runtime-env";
 
 // Autumn routes any org member may call: balance/customer reads that power
 // credit meters and usage views. Every other route (attach, updateSubscription,
@@ -53,7 +54,7 @@ function loadHandler() {
 }
 
 async function handleAutumnRequest(request: Request) {
-  if (!isHostedAuthMode(env.AUTH_MODE)) {
+  if (!isHostedAuthMode(env.AUTH_MODE) || (await isHostedBillingDisabled())) {
     return new Response("Not found", {
       status: 404,
     });

@@ -63,6 +63,11 @@ declare namespace Cloudflare {
     // not in the list is rejected. Leave unset to allow all emails.
     HOSTED_ALLOWED_EMAILS?: string;
 
+    // "true" turns off Autumn billing in hosted mode: no plan gates, no credit
+    // metering. For internal deployments that use hosted auth without selling
+    // plans. See isHostedBillingDisabled in src/server/lib/runtime-env.ts.
+    HOSTED_BILLING_DISABLED?: string;
+
     // OpenRouter API key for the in-app chat agents (onboarding + SAM).
     OPENROUTER_API_KEY?: string;
     // Optional OpenRouter model slug override (defaults in openrouter.ts).
