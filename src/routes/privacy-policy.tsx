@@ -8,7 +8,7 @@ import {
 export const Route = createFileRoute("/privacy-policy")({
   head: () => ({
     meta: [
-      { title: `Privacy Policy — ${APP_NAME}` },
+      { title: `${APP_NAME} Privacy Policy` },
       {
         name: "description",
         content: `How ${APP_NAME} collects, uses, shares, and protects personal data and Google user data.`,
@@ -22,7 +22,7 @@ function PrivacyPolicyPage() {
   return (
     <PublicSiteLayout>
       <article className="space-y-4 [&_h2]:mt-8 [&_h2]:text-2xl [&_h2]:font-semibold [&_ul]:list-disc [&_ul]:space-y-1 [&_ul]:pl-6 [&_a]:link">
-        <h1 className="text-4xl font-bold">Privacy Policy</h1>
+        <h1 className="text-4xl font-bold">{APP_NAME} Privacy Policy</h1>
         <p className="text-base-content/70">Last updated: October 9, 2026</p>
 
         <p>
@@ -139,7 +139,43 @@ function PrivacyPolicyPage() {
           information only to provide their service to us.
         </p>
 
-        <h2>5. Your choices</h2>
+        <h2>5. How we share information</h2>
+        <p>
+          We do not sell your personal information and we do not share it for
+          advertising. Beyond the service providers above, we disclose
+          information only when the law requires it, to protect the security of
+          the Service and its users, or as part of a transfer of the Service to
+          a new operator, who would remain bound by this policy.
+        </p>
+
+        <h2>6. Cookies</h2>
+        <p>
+          The Service uses only the cookies needed to sign you in and keep your
+          session secure, plus a local browser setting that remembers your light
+          or dark theme. We do not use advertising cookies or third-party
+          tracking cookies.
+        </p>
+
+        <h2>7. Data security</h2>
+        <p>
+          All connections to the Service are encrypted with TLS. Passwords are
+          stored hashed, never in plain text, and Google OAuth tokens are
+          encrypted at rest. Access to the production systems is limited to the
+          people who operate the Service. No system is perfectly secure, so if
+          we learn of a breach affecting your data we will notify you without
+          undue delay.
+        </p>
+
+        <h2>8. Data retention</h2>
+        <p>
+          We keep your account information and workspace data for as long as
+          your account exists. When you ask us to delete your account, we delete
+          your account information, workspace data, and any stored Google tokens
+          within 30 days. Server logs are kept for a limited period for security
+          and debugging and then removed.
+        </p>
+
+        <h2>9. Your choices</h2>
         <p>
           You can access, correct, or delete your information, disconnect Google
           integrations, or revoke Google access at any time, as described above.
@@ -147,19 +183,19 @@ function PrivacyPolicyPage() {
           <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.
         </p>
 
-        <h2>6. Children</h2>
+        <h2>10. Children</h2>
         <p>
           The Service is not directed to children under 13 and we do not
           knowingly collect their information.
         </p>
 
-        <h2>7. Changes to this policy</h2>
+        <h2>11. Changes to this policy</h2>
         <p>
           We may update this policy and will change the date above when we do.
           Material changes will be announced in the Service or by email.
         </p>
 
-        <h2>8. Contact</h2>
+        <h2>12. Contact</h2>
         <p>
           Questions about this policy or your data:{" "}
           <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.

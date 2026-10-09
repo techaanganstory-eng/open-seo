@@ -10,7 +10,9 @@ import { isHostedClientAuthMode } from "@/lib/auth-mode";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: `${APP_NAME} — SEO research and reporting` },
+      // Exactly the app name: Google's OAuth verification compares the
+      // homepage against the consent-screen app name.
+      { title: APP_NAME },
       {
         name: "description",
         content: `${APP_NAME} is an SEO tool for keyword research, site audits, rank tracking, and Google Search Console and Google Analytics reporting.`,
@@ -58,16 +60,17 @@ function PublicHome() {
       <section className="space-y-4">
         <h1 className="text-4xl font-bold">{APP_NAME}</h1>
         <p className="text-xl text-base-content/80">
-          {APP_NAME} helps you research keywords, audit your website, and track
-          search rankings, so you can grow organic traffic.
+          {APP_NAME} is an SEO research and reporting app. It helps website
+          owners and marketers research keywords, audit their sites for
+          technical SEO issues, track search rankings, and understand their
+          organic traffic.
         </p>
         <p className="text-base-content/70">
-          It is a private SEO workspace for the {APP_NAME} team. If you were
-          invited, sign in to get started.
+          The purpose of {APP_NAME} is to bring the data you need to grow search
+          traffic into one place: keyword and competitor data, site crawl
+          results, rank history, and, if you connect them, your own Google
+          Search Console and Google Analytics reports.
         </p>
-        <a href="/sign-in" className="btn btn-primary">
-          Sign in
-        </a>
       </section>
 
       <section className="mt-12 grid gap-4 sm:grid-cols-2">
